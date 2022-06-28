@@ -34,14 +34,10 @@
         // 加到页面上
         document.body.appendChild(renderer.domElement);
 
-        const r = 100
         // geo地球
         const data = await d3.json('./countryBoundaries.json')
-        const linesGroup = addGeoJsonFeaturesToScene(data.features, r)
+        const linesGroup = addGeoJsonFeaturesToScene(data.features, 100)
         scene.add(linesGroup)
-
-        // 设置数据点
-        setPoint()
 
         // 控制器
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -53,81 +49,6 @@
           renderer.render(scene, camera);
           requestAnimationFrame(render)
         }
-
-        async function setPoint() {
-          // 加载数据
-          const quakesData = await d3.json('./earthquakes.json')
-          const vertices = []
-          const colors = []
-          const sizes = []
-          quakesData.sort((a, b) => a.mag - b.mag)
-            .forEach(item => {
-              // 经纬度to三维坐标
-              const position = lglt2xyz(item.longitude, item.latitude, r * 1.01)
-              if (!(isNaN(position.x) && isNaN(position.x) && isNaN(position.x))) {
-                // 每个点的坐标
-                vertices.push(position.x, position.y, position.z)
-                // 归一化 地震强度
-                const mag = (item.mag - 4) / 2;
-                // 每个点的颜色
-                const color = d3.interpolateYlOrBr(mag).slice(4, -1).split(',')
-                colors.push(color[0] / 255, color[1] / 255, color[2] / 255, 0.8)
-                // 每个点的大小
-                sizes.push(mag * 3 + 2)
-              }
-            })
-
-          const geometry = new THREE.BufferGeometry()
-          const verticesBuffer = new Float32Array(vertices)
-          const colorsBuffer = new Float32Array(colors)
-          const sizesBuffer = new Float32Array(sizes)
-          geometry.setAttribute('position', new THREE.BufferAttribute(verticesBuffer, 3));
-          geometry.setAttribute('color', new THREE.BufferAttribute(colorsBuffer, 4));
-          geometry.setAttribute('size', new THREE.BufferAttribute(sizesBuffer, 1));
-          const material = new THREE.ShaderMaterial({
-            fragmentShader: pointFragmentShader,
-            vertexShader: pointVertexShader,
-            vertexColors: true,
-            transparent: true,
-          })
-
-          const points = new THREE.Points(geometry, material);
-          scene.add(points);
-        }
-
-        function lglt2xyz(lng, lat, radius) {
-          const theta = (90 + lng) * (Math.PI / 180) + Math.PI / 2
-          const phi = (90 - lat) * (Math.PI / 180)
-          return (new THREE.Vector3()).setFromSpherical(new THREE.Spherical(radius, phi, theta))
-        }
-
-        const pointFragmentShader = `
-          precision highp float;
-          varying vec4 vColor;
-
-          void main() {
-            vec2 uv = gl_PointCoord.xy;
-            float d = distance(uv, vec2(0.5, 0.5));
-            if (d > 0.5) 
-              discard;
-            else 
-              gl_FragColor = vec4( vColor.rgb, 1.0 );
-            // float color = 1.0 - step(0.5, d);
-            // gl_FragColor = vColor * color;
-          }
-        `
-        const pointVertexShader = `
-          precision highp float;
-          attribute float size;
-          varying vec4 vColor;
-
-          void main() {
-            vColor = color;
-            gl_PointSize = size * 200.0 / -(modelViewMatrix * vec4( position, 1.0 )).z;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-          }
-        `
-
 
         function addGeoJsonFeaturesToScene(features, radius) {
           const lines = new THREE.Group();
@@ -206,7 +127,6 @@
           })
           return new THREE.Line(lineGeom, lineMaterial);
         }
-
       })()
     </script>
   </body>
