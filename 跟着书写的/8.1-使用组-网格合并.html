@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+      // 创建场景
+      const scene = new THREE.Scene();
+
+      // 创建摄像机
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 50;
+
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      // 设置尺寸
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // 开启阴影
+      renderer.shadowMapEnabled = true;
+      // 加到页面上
+      document.body.appendChild(renderer.domElement);
+
+      // 合并的几何体
+      const groups = [];
+
+      // 基础的几何体
+      const basicGeometry = new THREE.BoxGeometry(1, 1, 1);
+      const basicMaterial = new THREE.MeshNormalMaterial();
+
+      // 每次改变几何体位置然后merge进合并的几何体
+      for (let i = 0; i < 10; i++) {
+        const basicCube = new THREE.Mesh(basicGeometry, basicMaterial);
+        basicCube.position.x = Math.random() * 40 - 20;
+        basicCube.position.y = Math.random() * 40 - 20;
+        basicCube.position.z = Math.random() * 40 - 20;
+        basicCube.updateMatrix();
+
+        groups.push(basicCube.geometry)
+        // merge方法有问题, 网上找了实现
+        // groupGeometry.merge(basicCube.geometry, 0);
+      }
+
+      // 还是有问题
+      const groupGeometry = mergeBufferGeometry(groups)
+
+      // 渲染合并的几何体
+      const mesh = new THREE.Mesh(groupGeometry, basicMaterial);
+      scene.add(mesh)
+
+      function mergeBufferGeometry(objects) {
+        const sumPosArr = new Array();
+        const sumNormArr = new Array();
+        const sumUvArr = new Array();
+
+        const modelGeometry = new THREE.BufferGeometry();
+
+        let sumPosCursor = 0;
+        let sumNormCursor = 0;
+        let sumUvCursor = 0;
+
+        let startGroupCount = 0;
+        let lastGroupCount = 0;
+
+        for (let a = 0; a < objects.length; a++) {
+          const posAttArr = objects[a].getAttribute('position').array;
+
+          for (let b = 0; b < posAttArr.length; b++) {
+            sumPosArr[b + sumPosCursor] = posAttArr[b];
+          }
+
+          sumPosCursor += posAttArr.length;
+
+
+          const numAttArr = objects[a].getAttribute('normal').array;
+
+          for (let b = 0; b < numAttArr.length; b++) {
+            sumNormArr[b + sumNormCursor] = numAttArr[b];
+          }
+
+          sumNormCursor += numAttArr.length;
+
+
+          const uvAttArr = objects[a].getAttribute('uv').array;
+
+          for (let b = 0; b < uvAttArr.length; b++) {
+            sumUvArr[b + sumUvCursor] = uvAttArr[b];
+          }
+
+          sumUvCursor += uvAttArr.length;
+
+          const groupArr = objects[a].groups;
+
+          for (let b = 0; b < groupArr.length; b++) {
+            startGroupCount = lastGroupCount
+            modelGeometry.addGroup(startGroupCount, groupArr[b].count, groupArr[b].materialIndex)
+            lastGroupCount = startGroupCount + groupArr[b].count
+          }
+        }
+
+        modelGeometry.setAttribute('position', new THREE.Float32BufferAttribute(sumPosArr, 3));
+        sumNormArr.length && modelGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(sumNormArr, 3));
+        sumUvArr.length && modelGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(sumUvArr, 2));
+
+        return modelGeometry
+      }
+
+      let time = 0;
+      function render() {
+        time++
+        mesh.rotation.x = time / 100
+        mesh.rotation.y = time / 100
+        mesh.rotation.z = time / 100
+        renderer.render(scene, camera);
+        requestAnimationFrame(render)
+      }
+      render()
+
+    </script>
+  </body>
+
+</html>

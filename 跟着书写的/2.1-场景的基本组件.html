@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <!-- <script type="text/javascript" src="./../learning-threejs-2/libs/three.js"></script> -->
+    <script type="text/javascript" src="../learning-threejs-2/libs/stats.js"></script>
+    <script type="text/javascript" src="../learning-threejs-2/libs/dat.gui.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div id="Stats-output">
+    </div>
+    <div id="WebGL-output">
+    </div>
+
+    <script type="text/javascript">
+      // 创建场景
+      const scene = new THREE.Scene();
+      // 创建摄像机
+      // 透视摄像机: 视野角度, 画布长宽比, 近截面, 远截面
+      var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      // 正交摄像机
+      // var camera = new THREE.OrthographicCamera(window.innerWidth / -20, window.innerWidth / 20, window.innerHeight / 20, window.innerHeight / -20, 0.1, 100);
+      // 创建渲染器
+      var renderer = new THREE.WebGLRenderer();
+
+      function init() {
+        renderer.setClearColor(new THREE.Color(0xaaaaaa));
+        // 设置尺寸
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // 开启阴影
+        renderer.shadowMapEnabled = true;
+        // 加到页面上
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // 创建辅助轴
+        var axes = new THREE.AxisHelper(20);
+        scene.add(axes);
+
+        // 摄像机位置 和 看向原点
+        camera.position.x = -30;
+        camera.position.y = 40;
+        camera.position.z = 30;
+        camera.lookAt(scene.position);
+
+        // 添加平面
+        // 平面几何体
+        var planeGeometry = new THREE.PlaneGeometry(60, 20);
+        // 材质
+        var planeMaterial = new THREE.MeshLambertMaterial({ color: 0xcccccc });
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 15;
+        plane.position.y = 0;
+        plane.position.z = 0;
+        // 开启投影
+        plane.receiveShadow = true;
+        scene.add(plane);
+
+        // 添加方块
+        var cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
+        var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.x = -4;
+        cube.position.y = 3;
+        cube.position.z = 0;
+        // 开启投影
+        cube.castShadow = true;
+        scene.add(cube);
+
+        // 添加球
+        var sphereGeometry = new THREE.SphereGeometry(4, 200, 200);
+        var sphereMaterial = new THREE.MeshLambertMaterial({ color: 0x7777ff });
+        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.x = 10;
+        sphere.position.y = 2;
+        sphere.position.z = 2;
+        // 开启投影
+        sphere.castShadow = true;
+        scene.add(sphere);
+
+        // 添加光源
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-40, 60, -10);
+        // 开启投影
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // 性能监控
+        const stats = initStats();
+        function initStats() {
+          const stats = new Stats();
+          stats.setMode(0); // 0: fps, 1: ms
+          // Align top-left
+          stats.domElement.style.position = 'absolute';
+          stats.domElement.style.left = '0px';
+          stats.domElement.style.top = '0px';
+          document.getElementById("Stats-output").appendChild(stats.domElement);
+          return stats;
+        }
+
+        // 添加gui控制
+        const controls = {
+          rotationSpeed: 0.02,
+          bouncingSpeed: 0.03
+        };
+        const gui = new dat.GUI();
+        gui.add(controls, 'rotationSpeed', 0, 0.5);
+        gui.add(controls, 'bouncingSpeed', 0, 0.5);
+
+        // 循环渲染
+        function raf(params) {
+          stats.update();
+          // rotate the cube around its axes
+          cube.rotation.x += controls.rotationSpeed;
+          cube.rotation.y += controls.rotationSpeed;
+          cube.rotation.z += controls.rotationSpeed;
+
+          // bounce the sphere up and down
+          step += controls.bouncingSpeed;
+          sphere.position.y = 2 + (10 * Math.abs(Math.sin(step)));
+          requestAnimationFrame(raf);
+          renderer.render(scene, camera);
+        }
+        let step = 0
+        raf()
+
+      }
+      window.onload = init
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      })
+
+    </script>
+  </body>
+
+</html>

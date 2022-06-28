@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>d3-path</title>
+    <script crossorigin="anonymous" src="https://lib.baomitu.com/d3/5.16.0/d3.min.js"></script>
+
+    <style>
+      #canvas {
+        border: 1px solid red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      const canvas = document.getElementById('canvas')
+      const ctx = canvas.getContext('2d')
+      const width = 834
+      const height = 800
+      canvas.width = width
+      canvas.height = height
+      canvas.style.width = `${width / 2}px`
+      canvas.style.height = `${height / 2}px`
+
+      // 投影选择
+      const projection = d3.geoMercator()
+        .scale(0.2)
+      // 绘制路径
+      const geoPath = d3.geoPath()
+        .projection(projection)
+        .context(ctx);
+
+      let geoData = {}
+
+      // d3.json('https://gist.githubusercontent.com/d3indepth/f28e1c3a99ea6d84986f35ac8646fac7/raw/c58cede8dab4673c91a3db702d50f7447b373d98/ne_110m_land.json')
+      d3.json('./countryBoundaries.json')
+        .then(data => {
+          projection.fitExtent([[0, 0], [width, height]], data)
+          geoData = data
+          render()
+        })
+
+      function fillMap(data) {
+        ctx.beginPath()
+        geoPath(data)
+        ctx.lineWidth = 1
+        ctx.stroke()
+      }
+
+      function render() {
+        fillMap(geoData)
+
+        requestAnimationFrame(render);
+      }
+    </script>
+  </body>
+
+</html>

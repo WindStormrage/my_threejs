@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>4-材质</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+
+      const scene = new THREE.Scene();
+      // scene.fog = new THREE.Fog(0xffffff, 0, 20)
+
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+      camera.position.x = 2;
+      camera.position.y = 2;
+      camera.position.z = 2;
+      camera.lookAt(scene.position);
+
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMapEnabled = true;
+      document.body.appendChild(renderer.domElement);
+
+      // 加点光
+      const light1 = new THREE.AmbientLight(0xffffff, 0.2)
+      scene.add(light1)
+
+      const light2 = new THREE.DirectionalLight(0xffffff, 1)
+      light2.position.set(50, 50, 0)
+      scene.add(light2)
+
+      const geometry = new THREE.SphereGeometry(2, 24, 24);
+      const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+      // 基础材质
+      // const material = new THREE.MeshBasicMaterial({
+      //   color: 'green',
+      //   opacity: 0.5,
+      //   transparent: true,
+      //   depthTest: true,
+      //   wireframe: true,
+      // })
+
+      // 深度材质
+      // const material = new THREE.MeshDepthMaterial({
+      //   color: 0xff00ff,
+      //   wireframe: true,
+      //   depthTest: true,
+      // })
+
+      // for (let i = 0; i < 100; i++) {
+      //   const sphere = new THREE.Mesh(geometry, material)
+      //   sphere.position.x = Math.random() * 100 - 50
+      //   sphere.position.y = Math.random() * 100 - 50
+      //   sphere.position.z = Math.random() * 100 - 50
+      //   scene.add(sphere)
+      // }
+
+      // 混合材质
+      // const material = new THREE.MeshDepthMaterial({
+      //   wireframe: true,
+      // })
+      // const colorMaterial = new THREE.MeshBasicMaterial({
+      //   color: 0xff00ff,
+      //   transparent: true,
+      //   blending: THREE.MultiplyBlending,
+      // });
+      // const sphereGeometry = new THREE.Mesh(geometry, material)
+      // const sphere = new THREE.SceneUtils.createMultiMaterialObject(
+      //   sphereGeometry,
+      //   [colorMaterial, material]
+      // )
+
+      // 法向量材质
+      // const material = new THREE.MeshNormalMaterial({
+      //   opacity: 0.5,
+      //   transparent: true,
+      //   wireframe: false,
+      //   shading: THREE.FlatShading
+      // })
+      // for (let i = 0; i < 100; i++) {
+      //   const sphere = new THREE.Mesh(geometry, material)
+      //   sphere.position.x = Math.random() * 100 - 50
+      //   sphere.position.y = Math.random() * 100 - 50
+      //   sphere.position.z = Math.random() * 100 - 50
+      //   scene.add(sphere)
+      // }
+
+      // 材质容器
+      // const matList = []
+      // for (let i = 0; i < 12; i++) {
+      //   matList.push(new THREE.MeshBasicMaterial({
+      //     color: Math.random() * 0xffffff
+      //   }))
+      // }
+      // const faceMat = new THREE.MeshFaceMaterial(matList);
+      // const cube = new THREE.Mesh(cubeGeometry, faceMat)
+      // scene.add(cube)
+
+      // 接受光的 暗淡的材质
+      // const material = new THREE.MeshLambertMaterial({ color: 'red' });
+      // const sphere = new THREE.Mesh(geometry, material);
+      // scene.add(sphere)
+
+      // 接受光的 光亮的材质
+      // const material2 = new THREE.MeshPhongMaterial({
+      //   color: 0x333333,
+      //   specular: 0x333333,
+      //   shininess: 20,
+      //   metal: true,
+      // });
+      // const sphere2 = new THREE.Mesh(geometry, material2);
+      // sphere2.position.x = 3
+      // sphere2.position.z = -3
+      // scene.add(sphere2)
+
+      // 线材质
+      // const material = new THREE.LineBasicMaterial({
+      //   color: 'green',
+      //   linewidth: 2,
+      // })
+      // const mesh = new THREE.Line(cubeGeometry, material);
+      // scene.add(mesh)
+
+      // 虚线材质
+      const material = new THREE.LineDashedMaterial({
+        color: 'green',
+        dashSize: 0.1,
+        gapSize: 0.05,
+      })
+      const mesh = new THREE.Line(cubeGeometry, material);
+      scene.add(mesh)
+
+      renderer.render(scene, camera)
+    </script>
+  </body>
+
+</html>

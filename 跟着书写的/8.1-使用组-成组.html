@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+      // 创建场景
+      const scene = new THREE.Scene();
+
+      // 创建摄像机
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 10;
+
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      // 设置尺寸
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // 开启阴影
+      renderer.shadowMapEnabled = true;
+      // 加到页面上
+      document.body.appendChild(renderer.domElement);
+
+      // 给mash打组
+      const group = new THREE.Group();
+
+      const count = 30, size = 1, gap = 1;
+
+      // cube都添加到组里
+      for (let i = 0; i < count; i++) {
+        const cube = createCube(size);
+        cube.position.x = i * (size + gap) - (count - 1) * (size + gap) / 2;
+        // 添加到group
+        group.add(cube)
+      }
+      scene.add(group)
+
+      let time = 0;
+      function render() {
+        time++
+        // 旋转group
+        setChildrenRotation(scene, time / 100)
+        // 旋转每一个cube
+        setChildrenRotation(scene.children[0], time / 100)
+        renderer.render(scene, camera);
+        requestAnimationFrame(render)
+      }
+      render()
+
+
+      // 创建cube
+      function createCube(size) {
+        const geometry = new THREE.BoxGeometry(size, size, size);
+        const material = new THREE.MeshNormalMaterial();
+        return new THREE.Mesh(geometry, material);
+      }
+      // 旋转
+      function setChildrenRotation(item, data) {
+        item.children.forEach(i => {
+          i.rotation.x = data
+          i.rotation.y = data
+          i.rotation.z = data
+        })
+      }
+
+    </script>
+  </body>
+
+</html>

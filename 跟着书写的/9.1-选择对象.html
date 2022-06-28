@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <script type="text/javascript" src="DragControls.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+      // 创建场景
+      const scene = new THREE.Scene();
+
+      // 创建摄像机
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 100;
+
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      // 设置尺寸
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // 开启阴影
+      renderer.shadowMapEnabled = true;
+      // 加到页面上
+      document.body.appendChild(renderer.domElement);
+
+      // 给mash打组
+      const count = 100, size = 3;
+
+      // cube都添加到组里
+      for (let i = 0; i < count; i++) {
+        const geometry = new THREE.BoxGeometry(size, size, size);
+        const material = new THREE.MeshNormalMaterial();
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.x = Math.random() * 100 - 50;
+        cube.position.y = Math.random() * 100 - 50;
+        cube.position.z = Math.random() * 100 - 50;
+        scene.add(cube)
+      }
+
+      let time = 0;
+      function render() {
+        time++
+        scene.children.forEach(i => {
+          i.rotation.x = time / 100
+          i.rotation.y = time / 100
+          i.rotation.z = time / 100
+        });
+        renderer.render(scene, camera);
+        requestAnimationFrame(render)
+      }
+      render()
+
+      // 创建射线
+      const raycaster = new THREE.Raycaster()
+      // 点击事件
+      document.addEventListener('mousemove', (e) => {
+        // 坐标转换
+        const vector = new THREE.Vector2(
+          (e.clientX / window.innerWidth) * 2 - 1,
+          -(e.clientY / window.innerHeight) * 2 + 1,
+        );
+        // 使用一个原点和方向来更新射线。
+        raycaster.setFromCamera(vector, camera);
+        // 检测所有在射线与这些物体之间，包括或不包括后代的相交部分。
+        const intersects = raycaster.intersectObjects(scene.children);
+        // 射线达到的第一个物体
+        if (intersects.length > 0) {
+          const material = intersects[0].object.material
+          material.transparent = true;
+          material.opacity = 0.5;
+          material.needsUpdate = true;
+        }
+      })
+
+      // 拖拽对象
+      const controls = new THREE.DragControls(scene.children, camera, renderer.domElement);
+    </script>
+  </body>
+
+</html>

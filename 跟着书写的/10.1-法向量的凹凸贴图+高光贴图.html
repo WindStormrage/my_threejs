@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <script type="text/javascript" src="OrbitControls.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+      // 创建场景
+      const scene = new THREE.Scene();
+
+      // 创建摄像机
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 30;
+      camera.position.x = 30;
+      camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      // 设置尺寸
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // 开启阴影
+      renderer.shadowMapEnabled = true;
+      // 加到页面上
+      document.body.appendChild(renderer.domElement);
+
+      // 纹理
+      const texture = new THREE.TextureLoader().load("./img/Earth.png")
+      // 法向量凹凸纹理
+      const normalTexture = new THREE.TextureLoader().load("./img/EarthNormal.png")
+      // 高光贴图
+      const specularTexture = new THREE.TextureLoader().load("./img/EarthSpec.png")
+
+      // 物体
+      const geometry = new THREE.SphereGeometry(10)
+      const material = new THREE.MeshPhongMaterial({
+        map: texture,
+        // 法向量纹理
+        normalMap: normalTexture,
+        normalScale: {
+          x: 10,
+          y: 10
+        },
+        // 高光纹理
+        specularMap: specularTexture,
+        specular: new THREE.Color(0xffffff),
+        shininess: 20
+      })
+      const mesh = new THREE.Mesh(geometry, material)
+      scene.add(mesh)
+
+      // 光
+      const light = new THREE.DirectionalLight(0xffffff, 1)
+      light.position.set(50, 50, 0)
+      scene.add(light)
+
+      // 旋转
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.autoRotate = true;
+
+      // 渲染
+      function render() {
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(render)
+      }
+      render()
+    </script>
+  </body>
+
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 200);
+      camera.position.x = 0;
+      camera.position.y = 0;
+      camera.position.z = 3;
+      camera.lookAt(scene.position);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMapEnabled = true;
+      document.body.appendChild(renderer.domElement);
+
+      const vertexShader = `
+        precision highp float;
+        uniform float time;
+
+        void main() {
+          float p = sin(time) / 5.0;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(
+            position.x, 
+            position.y, 
+            position.z,
+            1
+          );
+        }
+      `
+      const fragmentShader = `
+        precision highp float;
+        uniform float time;
+        uniform vec2 resolution;
+        #define PI 3.14159
+
+        // 圆环
+        float ring(vec2 uv, float g) {
+          // 圆环宽度
+          const float rWidth = 0.05;
+          // 内圈
+          float r1 = fract(time / 3000.0 + g);
+          // 外圈
+          float r2 = fract(time / 3000.0 + rWidth + g);
+          float d = distance(uv, vec2(0.5, 0.5));
+          if(r1 < r2) {
+            return 1.0 - step(d, r2) * (1.0 - step(d, r1));
+          }
+          return step(d, r1) * (1.0 - step(d, r2));
+        }
+
+        // 透明度
+        float getAlpha(vec2 uv) {
+          float d = distance(uv, vec2(0.5, 0.5));
+          return 1.0 - smoothstep(0.0, 1.0, d);
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / resolution.xy;
+          // float color = step(uv.x, 0.5) * step(uv.y, 0.5);
+          // gl_FragColor = vec4(color, color, color, 1.0);
+          float color = ring(uv, 0.0) * ring(uv, 0.2) * ring(uv, 0.4) * ring(uv, 0.6) * ring(uv, 0.8);
+          float alpha = getAlpha(uv);
+          gl_FragColor = vec4(color, color, color, alpha);
+        }
+      `
+
+      let time = 0;
+      const geometry = new THREE.CircleGeometry(2, 512);
+      // const geometry = new THREE.BoxGeometry(1, 1);
+      // const geometry = new THREE.ConeGeometry(1, 1);
+      const material = new THREE.ShaderMaterial({
+        transparent: true,
+        alphaTest: true,
+        side: 'double',
+        uniforms: {
+          time: { type: 'f', value: time },
+          resolution: { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+        },
+        vertexShader,
+        fragmentShader,
+      });
+      const shaderMesh = new THREE.Mesh(geometry, material);
+      scene.add(shaderMesh)
+
+      function render() {
+        time += 1
+        // shaderMesh.rotation.x = time / 100
+        // shaderMesh.rotation.y = time / 100
+        shaderMesh.material.uniforms.time.value = time
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      render()
+    </script>
+  </body>
+
+</html>

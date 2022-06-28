@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <script type="text/javascript">
+      // 创建场景
+      const scene = new THREE.Scene();
+
+      // 创建摄像机
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 10;
+      
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(new THREE.Color(0xaaaaaa));
+      // 设置尺寸
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // 开启阴影
+      renderer.shadowMapEnabled = true;
+      // 加到页面上
+      document.body.appendChild(renderer.domElement);
+
+
+      renderer.render(scene, camera);
+
+    </script>
+  </body>
+
+</html>
