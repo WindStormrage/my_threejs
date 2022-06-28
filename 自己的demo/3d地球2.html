@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <title>three</title>
+    <script type="text/javascript" src="three.min.js"></script>
+    <script type="text/javascript" src="OrbitControls.js"></script>
+    <script crossorigin="anonymous" src="https://lib.baomitu.com/d3/5.16.0/d3.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script type="text/javascript">
+      (async () => {
+        // 创建场景
+        const scene = new THREE.Scene();
+
+        // 创建摄像机
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 600);
+        camera.position.z = 300;
+
+        // 创建渲染器
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(new THREE.Color(0x000000));
+        // 设置尺寸
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // 开启阴影
+        renderer.shadowMapEnabled = true;
+        // 加到页面上
+        document.body.appendChild(renderer.domElement);
+
+        // 使用贴图的canvas
+        const data = await d3.json('./countryBoundaries.json')
+        const linesGroup = addGeoJsonFeaturesToScene(data.features, 100)
+        scene.add(linesGroup)
+
+        // 控制器
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.autoRotate = true;
+
+        render()
+        function render() {
+          controls.update();
+          renderer.render(scene, camera);
+          requestAnimationFrame(render)
+        }
+
+        function addGeoJsonFeaturesToScene(features, radius) {
+          const lines = new THREE.Group();
+          // GEOJSON to ThreeJS
+          for (let i = 0; i < features.length; i++) {
+            let feature = features[i];
+            let coords = [];
+            for (let c = 0; c < feature.geometry.coordinates.length; c++) {
+              if (feature.geometry.type == "Polygon") {
+                let coords = [];
+                for (let s = 0; s < feature.geometry.coordinates[c].length; s++) {
+                  let xy = {
+                    x: feature.geometry.coordinates[c][s][0],
+                    y: feature.geometry.coordinates[c][s][1]
+                  };
+                  coords.push(xy);
+                }
+
+                if (coords.length > 0) {
+                  lines.add(createLineFromCoords(coords, radius));
+                }
+              } else if (feature.geometry.type == "MultiPolygon") {
+                for (let s = 0; s < feature.geometry.coordinates[c].length; s++) {
+                  //each polygon in multipolygon:
+                  let coords = [];
+                  for (let m = 0; m < feature.geometry.coordinates[c][s].length; m++) {
+                    let xy = {
+                      x: feature.geometry.coordinates[c][s][m][0],
+                      y: feature.geometry.coordinates[c][s][m][1]
+                    };
+                    coords.push(xy);
+                  }
+                }
+                if (coords.length > 0) {
+                  lines.add(createLineFromCoords(coords, radius));
+                }
+              } else if (feature.geometry.type == "LineString") {
+                let xy = {
+                  x: feature.geometry.coordinates[c][0],
+                  y: feature.geometry.coordinates[c][1]
+                };
+                coords.push(xy);
+              }
+            }
+            if ((feature.geometry.type = "LineString")) {
+              if (coords.length > 0) {
+                lines.add(createLineFromCoords(coords, radius));
+              }
+            }
+          }
+          return lines;
+        }
+
+        function createLineFromCoords(coords, radius) {
+          let lineGeom = new THREE.BufferGeometry();
+          let positions = [];
+          for (var i = 0; i < coords.length; i++) {
+            let lat = coords[i].y;
+            let lon = coords[i].x;
+            let latRad = lat * (Math.PI / 180);
+            let lonRad = -lon * (Math.PI / 180);
+            let x = Math.cos(latRad) * Math.cos(lonRad) * radius;
+            let y = Math.sin(latRad) * radius;
+            let z = Math.cos(latRad) * Math.sin(lonRad) * radius;
+            positions.push(x, y, z);
+            //lineGeom.vertices.push(new THREE.Vector3(x, y, z));
+          }
+
+          lineGeom.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(positions, 3)
+          );
+          const lineMaterial = new THREE.LineBasicMaterial({
+            linewidth: 1,
+            color: "white"
+          })
+          return new THREE.Line(lineGeom, lineMaterial);
+        }
+      })()
+    </script>
+  </body>
+
+</html>

@@ -1,4 +1,4 @@
-function addGeoJsonFeaturesToScene(features) {
+function addGeoJsonFeaturesToScene(features, radius) {
   const lines = new THREE.Group();
   // GEOJSON to ThreeJS
   for (let i = 0; i < features.length; i++) {
@@ -16,7 +16,7 @@ function addGeoJsonFeaturesToScene(features) {
         }
 
         if (coords.length > 0) {
-          lines.add(createLineFromCoords(coords));
+          lines.add(createLineFromCoords(coords, radius));
         }
       } else if (feature.geometry.type == "MultiPolygon") {
         for (let s = 0; s < feature.geometry.coordinates[c].length; s++) {
@@ -31,7 +31,7 @@ function addGeoJsonFeaturesToScene(features) {
           }
         }
         if (coords.length > 0) {
-          lines.add(createLineFromCoords(coords));
+          lines.add(createLineFromCoords(coords, radius));
         }
       } else if (feature.geometry.type == "LineString") {
         let xy = {
@@ -43,14 +43,14 @@ function addGeoJsonFeaturesToScene(features) {
     }
     if ((feature.geometry.type = "LineString")) {
       if (coords.length > 0) {
-        lines.add(createLineFromCoords(coords));
+        lines.add(createLineFromCoords(coords, radius));
       }
     }
   }
   return lines;
 }
 
-function createLineFromCoords(coords) {
+function createLineFromCoords(coords, radius) {
   let lineGeom = new THREE.BufferGeometry();
   let positions = [];
   for (var i = 0; i < coords.length; i++) {
@@ -69,5 +69,9 @@ function createLineFromCoords(coords) {
     "position",
     new THREE.Float32BufferAttribute(positions, 3)
   );
+  const lineMaterial = new THREE.LineBasicMaterial({
+    linewidth: 1,
+    color: "white"
+  })
   return new THREE.Line(lineGeom, lineMaterial);
 }
